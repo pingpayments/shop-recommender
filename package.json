@@ -13,10 +13,10 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
-    "@vis.gl/react-google-maps": "^1.5.4",
     "next": "15.4.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "use-places-autocomplete": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
