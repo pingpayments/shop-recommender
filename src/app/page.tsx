@@ -4,14 +4,16 @@ import { useMemo, useState } from "react";
 import { PlacesAutocomplete } from "@/components/places-autocomplete";
 import { getGeocode, getLatLng } from "use-places-autocomplete";
 
-// hamburg
 const DEFAULT_LOCATION = { lat: 53.5511, lng: 9.9937 };
+const INITIAL_ZOOM = 12;
 
 export default function Home() {
   const [lat, setLat] = useState(DEFAULT_LOCATION.lat);
   const [lng, setLng] = useState(DEFAULT_LOCATION.lng);
+  const [zoom, setZoom] = useState(INITIAL_ZOOM);
 
   const libraries = useMemo(() => ["places"], []);
+
   // This gives coordinates for the center of the map
   const mapCenter = useMemo(() => ({ lat, lng }), [lat, lng]);
 
@@ -25,10 +27,10 @@ export default function Home() {
   );
 
   const { isLoaded } = useLoadScript({
-    // your API key will be publicly exposed, so be sure to apply HTTP restrictions on the Google Cloud console
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
-    // This specifies the google maps libraries that we want to load (e.g. we could add drawing, geometry, places etc)
-    libraries: libraries as any,
+
+    // @ts-expect-error: libraries is really just a string array
+    libraries: libraries,
   });
 
   if (!isLoaded) {
@@ -36,54 +38,34 @@ export default function Home() {
   }
 
   return (
-    <main className="flex justify-center align-center">
-      <div className="border border-r-gray-400 w-1/4 h-screen bg-gray-200">
+    <main className="flex flex-col items-center w-full min-h-screen bg-gray-100 p-2">
+      <div className="w-full max-w-md mb-2">
         <PlacesAutocomplete
           onAddressSelect={(address) => {
             getGeocode({ address }).then((results) => {
               const { lat, lng } = getLatLng(results[0]);
-
               setLat(lat);
               setLng(lng);
+              setZoom(15);
             });
           }}
         />
       </div>
-      <GoogleMap
-        options={mapOptions}
-        zoom={12}
-        center={mapCenter}
-        mapTypeId={google.maps.MapTypeId.ROADMAP}
-        mapContainerClassName="w-3/4"
-        // mapContainerStyle={{ width: "800px", height: "800px" }}
-        onLoad={() => console.log("Map component loaded")}
-      >
-        {/* This draws a marker over the map
-          position prop specifies the lat + long of where to place ther marker
-        */}
-        <MarkerF
-          position={mapCenter}
-          onLoad={() => console.log("Marker loaded")}
-          /* you can also change the icon of the marker
-                    icon="https://picsum.photos/64"*/
-        />
-        {/* we can also draw circles around the map */}
-        {/* {[1000, 2500].map((radius, idx) => {
-          return (
-            <CircleF
-              key={idx}
-              center={mapCenter}
-              radius={radius}
-              onLoad={() => console.log("Circle Load...")}
-              options={{
-                fillColor: radius > 1000 ? "red" : "green",
-                strokeColor: radius > 1000 ? "red" : "green",
-                strokeOpacity: 0.8,
-              }}
-            />
-          );
-        })} */}
-      </GoogleMap>
+      <div className="w-full flex-1 max-w-3xl rounded-lg overflow-hidden shadow-md">
+        <GoogleMap
+          options={mapOptions}
+          zoom={zoom}
+          center={mapCenter}
+          mapTypeId={google.maps.MapTypeId.ROADMAP}
+          mapContainerClassName="w-full h-[60vh] sm:h-[70vh]"
+          onLoad={() => console.log("Map component loaded")}
+        >
+          <MarkerF
+            position={mapCenter}
+            onLoad={() => console.log("Marker loaded")}
+          />
+        </GoogleMap>
+      </div>
     </main>
   );
 }
